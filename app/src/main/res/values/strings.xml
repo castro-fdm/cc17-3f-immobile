@@ -1,3 +1,15 @@
 <resources>
     <string name="app_name">WorkLoad</string>
+    <string name="signup_title">Sign up</string>
+    <string name="first_name_hint">First name</string>
+    <string name="last_name_hint">Last name</string>
+    <string name="email_hint">Email</string>
+    <string name="birth_date_hint">Birth date</string>
+    <string name="phone_hint">Phone number</string>
+    <string name="password_hint">Password</string>
+    <string name="confirm_password_hint">Confirm password</string>
+    <string name="confirm_button_text">Confirm</string>
+    <string name="login_redirect_text">Already have an account? Log In</string>
+    <string name="logo_content_description">WorkLoad Logo</string>
+
 </resources>
