@@ -103,12 +103,14 @@
             android:textColor="#1B1A1A" />
 
         <Button
-            android:id="@+id/signupBtn"
+            android:id="@+id/signupButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="15sp"
-            android:backgroundTint="#1B1A1A"
             android:text="Sign Up"
-            android:textColor="#E0D9D9" />
+            app:layout_constraintTop_toBottomOf="@+id/someOtherView"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"/>
+
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
