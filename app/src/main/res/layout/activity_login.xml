@@ -107,10 +107,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="15sp"
+            android:backgroundTint="#1B1A1A"
             android:text="Sign Up"
-            app:layout_constraintTop_toBottomOf="@+id/someOtherView"
+            android:textColor="#E0D9D9"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"/>
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/someOtherView" />
 
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
