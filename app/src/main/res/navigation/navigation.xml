@@ -12,24 +12,47 @@
         tools:layout="@layout/fragment_welcome">
         <action
             android:id="@+id/action_welcomeFragment_to_loginFragment"
-            app:destination="@id/loginFragment" />
+            app:destination="@id/loginFragment">
+        </action>
     </fragment>
     <fragment
         android:id="@+id/loginFragment"
         android:name="com.example.workload.LoginFragment"
         android:label="fragment_login"
         tools:layout="@layout/fragment_login" >
+        <argument
+            android:name="selectedRole"
+            app:argType="string" />
         <action
             android:id="@+id/action_loginFragment_to_signupFragment"
             app:destination="@id/signupFragment" />
+        <action
+            android:id="@+id/action_loginFragment_to_requesteeFragment"
+            app:destination="@id/requesteeFragment" />
+        <action
+            android:id="@+id/action_loginFragment_to_servitorFragment"
+            app:destination="@id/servitorFragment" />
     </fragment>
     <fragment
         android:id="@+id/signupFragment"
         android:name="com.example.workload.SignupFragment"
         android:label="fragment_signup"
         tools:layout="@layout/fragment_signup" >
+        <argument
+            android:name="selectedRole"
+            app:argType="string" />
         <action
             android:id="@+id/action_signupFragment_to_loginFragment"
             app:destination="@id/loginFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/requesteeFragment"
+        android:name="com.example.workload.RequesteeFragment"
+        android:label="fragment_requestee"
+        tools:layout="@layout/fragment_requestee" />
+    <fragment
+        android:id="@+id/servitorFragment"
+        android:name="com.example.workload.ServitorFragment"
+        android:label="fragment_servitor"
+        tools:layout="@layout/fragment_servitor" />
 </navigation>

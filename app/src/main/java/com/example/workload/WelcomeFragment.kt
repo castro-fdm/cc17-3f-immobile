@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.cardview.widget.CardView
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.findNavController
 
 class WelcomeFragment : Fragment() {
 
@@ -15,20 +16,24 @@ class WelcomeFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-       val layout = inflater.inflate(R.layout.fragment_welcome, container, false)
+        val layout = inflater.inflate(R.layout.fragment_welcome, container, false)
 
         val requesteeCard = layout.findViewById<CardView>(R.id.requesteeCard)
         val servitorCard = layout.findViewById<CardView>(R.id.servitorCard)
 
         requesteeCard.setOnClickListener {
-            view -> view.findNavController().navigate(R.id.action_welcomeFragment_to_loginFragment)
+            navigateToLogin("requestee")
         }
 
         servitorCard.setOnClickListener {
-            view -> view.findNavController().navigate(R.id.action_welcomeFragment_to_loginFragment)
+            navigateToLogin("servitor")
         }
 
         return layout
     }
 
+    private fun navigateToLogin(role: String) {
+        val action = WelcomeFragmentDirections.actionWelcomeFragmentToLoginFragment(role)
+        view?.findNavController()?.navigate(action)
+    }
 }
