@@ -24,7 +24,7 @@
         app:srcCompat="@drawable/workload_logo" />
 
     <TextView
-        android:id="@+id/logoTitle"
+        android:id="@+id/navHome"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
