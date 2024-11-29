@@ -9,20 +9,25 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.launch
 
 class RequesteeFragment : Fragment() {
 
-    private val PICK_IMAGE_REQUEST_CODE = 1
-    private var selectedImageUri: Uri? = null
+    private lateinit var db: AppDatabase
+    private lateinit var listingDao: ListingDao
     private lateinit var adapter: ListingsAdapter
     private val listings = mutableListOf<Listing>()
+    private var selectedImageUri: Uri? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -30,28 +35,60 @@ class RequesteeFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_requestee, container, false)
 
-        val recyclerView: RecyclerView = view.findViewById(R.id.recyclerView)
-        val addButton: ImageButton = view.findViewById(R.id.imageButton)
+        // Initialize Room Database
+        db = AppDatabase.getDatabase(requireContext())
+        listingDao = db.listingDao()
 
+        // RecyclerView setup
+        val recyclerView: RecyclerView = view.findViewById(R.id.recyclerView)
         adapter = ListingsAdapter(
             listings,
             onEdit = { listing -> showAddEditDialog(listing) },
-            onDelete = { listing ->
-                listings.remove(listing)
-                adapter.notifyDataSetChanged()
-            }
+            onDelete = { listing -> deleteListing(listing) }
         )
-
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = adapter
 
-        addButton.setOnClickListener {
-            showAddEditDialog(null)
-        }
+        // Add optional spacing between RecyclerView items
+        recyclerView.addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
+
+        // Load all listings initially
+        loadListings()
+
+        // Buttons
+        val addButton: ImageButton = view.findViewById(R.id.imageButton)
+        val yourListingsButton: Button = view.findViewById(R.id.yourListingsButton)
+        val completedListingsButton: Button = view.findViewById(R.id.completedListingsButton)
+
+        // Button listeners
+        addButton.setOnClickListener { showAddEditDialog(null) }
+        yourListingsButton.setOnClickListener { loadListings() } // Load all listings
+        completedListingsButton.setOnClickListener { loadCompletedListings() } // Load completed listings
 
         return view
     }
 
+    // Load all listings
+    private fun loadListings() {
+        lifecycleScope.launch {
+            val dbListings = listingDao.getAllListings()
+            listings.clear()
+            listings.addAll(dbListings)
+            adapter.notifyDataSetChanged()
+        }
+    }
+
+    // Load only completed listings
+    private fun loadCompletedListings() {
+        lifecycleScope.launch {
+            val dbCompletedListings = listingDao.getCompletedListings() // Add query in DAO
+            listings.clear()
+            listings.addAll(dbCompletedListings)
+            adapter.notifyDataSetChanged()
+        }
+    }
+
+    // Show Add/Edit dialog
     private fun showAddEditDialog(existingListing: Listing?) {
         val dialogView = LayoutInflater.from(requireContext())
             .inflate(R.layout.dialog_add_edit_listing, null)
@@ -61,6 +98,7 @@ class RequesteeFragment : Fragment() {
         val descriptionInput: EditText = dialogView.findViewById(R.id.descriptionInput)
         val priceInput: EditText = dialogView.findViewById(R.id.priceInput)
 
+        // Populate fields if editing an existing listing
         existingListing?.let {
             titleInput.setText(it.title)
             descriptionInput.setText(it.description)
@@ -69,27 +107,26 @@ class RequesteeFragment : Fragment() {
             imageInput.setImageURI(selectedImageUri)
         }
 
-        imageInput.setOnClickListener {
-            openGallery()
-        }
+        imageInput.setOnClickListener { openGallery() } // Handle image selection
 
         val dialog = AlertDialog.Builder(requireContext())
             .setView(dialogView)
             .setPositiveButton("Save") { _, _ ->
-                val listing = Listing(
+                val newListing = Listing(
+                    id = existingListing?.id ?: 0, // Keep ID for updates
                     imageUri = selectedImageUri?.toString() ?: "",
                     title = titleInput.text.toString(),
                     description = descriptionInput.text.toString(),
                     price = priceInput.text.toString()
                 )
 
-                if (existingListing != null) {
-                    val index = listings.indexOf(existingListing)
-                    listings[index] = listing
-                    adapter.notifyItemChanged(index)
-                } else {
-                    listings.add(listing)
-                    adapter.notifyItemInserted(listings.size - 1)
+                lifecycleScope.launch {
+                    if (existingListing != null) {
+                        listingDao.updateListing(newListing)
+                    } else {
+                        listingDao.insertListing(newListing)
+                    }
+                    loadListings()
                 }
             }
             .setNegativeButton("Cancel", null)
@@ -98,23 +135,28 @@ class RequesteeFragment : Fragment() {
         dialog.show()
     }
 
+    // Delete a listing
+    private fun deleteListing(listing: Listing) {
+        lifecycleScope.launch {
+            listingDao.deleteListing(listing)
+            loadListings()
+        }
+    }
+
+    // Open gallery for image selection
     private fun openGallery() {
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        intent.type = "image/*"
-        startActivityForResult(intent, PICK_IMAGE_REQUEST_CODE)
+        startActivityForResult(intent, REQUEST_IMAGE_PICK)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == PICK_IMAGE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+        if (requestCode == REQUEST_IMAGE_PICK && resultCode == Activity.RESULT_OK) {
             selectedImageUri = data?.data
-            if (selectedImageUri != null) {
-                // Update the ImageView in the dialog with the selected image
-                val dialogImageView: ImageView? = view?.findViewById(R.id.imageInput)
-                dialogImageView?.setImageURI(selectedImageUri)
-            } else {
-                Toast.makeText(requireContext(), "Failed to select image", Toast.LENGTH_SHORT).show()
-            }
         }
+    }
+
+    companion object {
+        private const val REQUEST_IMAGE_PICK = 100
     }
 }
