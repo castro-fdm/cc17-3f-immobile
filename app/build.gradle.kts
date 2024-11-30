@@ -51,6 +51,8 @@ dependencies {
     implementation(libs.androidx.room.runtime.v252)
     kapt(libs.androidx.room.compiler.v252)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.glide)  // Add Glide dependency
+    kapt(libs.compiler)       // Add Glide compiler (for annotation processing)
     kapt(libs.room.compiler)
     implementation(libs.androidx.room.runtime)
     testImplementation(libs.junit)

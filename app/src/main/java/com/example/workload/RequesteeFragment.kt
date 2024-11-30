@@ -15,11 +15,13 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.findNavController
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -38,14 +40,22 @@ class RequesteeFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_requestee, container, false)
+        val layout = inflater.inflate(R.layout.fragment_requestee, container, false)
+
+        val profileText = layout.findViewById<TextView>(R.id.profileText)
+
+        profileText.setOnClickListener{
+            val action = RequesteeFragmentDirections.actionRequesteeFragmentToUserProfileFragment()
+            view?.findNavController()?.navigate(action)
+        }
+
 
         // Initialize Room Database
         db = AppDatabase.getDatabase(requireContext())
         listingDao = db.listingDao()
 
         // RecyclerView setup
-        val recyclerView: RecyclerView = view.findViewById(R.id.recyclerView)
+        val recyclerView: RecyclerView = layout.findViewById(R.id.recyclerView)
         adapter = ListingsAdapter(
             listings,
             onEdit = { listing -> showAddEditDialog(listing) },
@@ -61,16 +71,16 @@ class RequesteeFragment : Fragment() {
         loadListings()
 
         // Buttons
-        val addButton: ImageButton = view.findViewById(R.id.imageButton)
-        val yourListingsButton: Button = view.findViewById(R.id.yourListingsButton)
-        val completedListingsButton: Button = view.findViewById(R.id.completedListingsButton)
+        val addButton: ImageButton = layout.findViewById(R.id.imageButton)
+        val yourListingsButton: Button = layout.findViewById(R.id.yourListingsButton)
+        val completedListingsButton: Button = layout.findViewById(R.id.completedListingsButton)
 
         // Button listeners
         addButton.setOnClickListener { showAddEditDialog(null) }
         yourListingsButton.setOnClickListener { loadListings() } // Load all listings
         completedListingsButton.setOnClickListener { loadCompletedListings() } // Load completed listings
 
-        return view
+        return layout
     }
 
     // Load all listings

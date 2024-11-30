@@ -49,10 +49,18 @@
         android:id="@+id/requesteeFragment"
         android:name="com.example.workload.RequesteeFragment"
         android:label="fragment_requestee"
-        tools:layout="@layout/fragment_requestee" />
+        tools:layout="@layout/fragment_requestee" >
+        <action
+            android:id="@+id/action_requesteeFragment_to_userProfileFragment"
+            app:destination="@id/userProfileFragment" />
+    </fragment>
     <fragment
         android:id="@+id/servitorFragment"
         android:name="com.example.workload.ServitorFragment"
         android:label="fragment_servitor"
         tools:layout="@layout/fragment_servitor" />
+    <fragment
+        android:id="@+id/userProfileFragment"
+        android:name="com.example.workload.UserProfileFragment"
+        android:label="UserProfileFragment" />
 </navigation>
