@@ -2,9 +2,11 @@ package com.example.workload
 
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -15,11 +17,14 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
+import java.io.File
 
 class RequesteeFragment : Fragment() {
 
@@ -114,7 +119,7 @@ class RequesteeFragment : Fragment() {
             .setPositiveButton("Save") { _, _ ->
                 val newListing = Listing(
                     id = existingListing?.id ?: 0, // Keep ID for updates
-                    imageUri = selectedImageUri?.toString() ?: "",
+                    imageUri = selectedImageUri?.let { copyUriToInternalStorage(it) } ?: "",
                     title = titleInput.text.toString(),
                     description = descriptionInput.text.toString(),
                     price = priceInput.text.toString()
@@ -145,18 +150,65 @@ class RequesteeFragment : Fragment() {
 
     // Open gallery for image selection
     private fun openGallery() {
-        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        startActivityForResult(intent, REQUEST_IMAGE_PICK)
+        if (ContextCompat.checkSelfPermission(requireContext(), android.Manifest.permission.READ_EXTERNAL_STORAGE)
+            != PackageManager.PERMISSION_GRANTED    ) {
+            ActivityCompat.requestPermissions(
+                requireActivity(),
+                arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE),
+                REQUEST_STORAGE_PERMISSION
+            )
+        } else {
+            val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+            startActivityForResult(intent, REQUEST_IMAGE_PICK)
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_STORAGE_PERMISSION && grantResults.isNotEmpty()
+            && grantResults[0] == PackageManager.PERMISSION_GRANTED
+        ) {
+            openGallery()
+        } else {
+            Toast.makeText(requireContext(), "Permission denied", Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_IMAGE_PICK && resultCode == Activity.RESULT_OK) {
-            selectedImageUri = data?.data
+            data?.data?.let { uri ->
+                selectedImageUri = uri
+                view?.findViewById<ImageView>(R.id.imageInput)?.setImageURI(uri)
+                Log.d("RequesteeFragment", "Selected Image URI: $uri")
+            } ?: Toast.makeText(requireContext(), "Failed to select image", Toast.LENGTH_SHORT).show()
         }
     }
 
+    private fun copyUriToInternalStorage(uri: Uri): String {
+        // Create the images directory if it doesn't exist
+        val imagesDir = File(requireContext().filesDir, "images")
+        if (!imagesDir.exists()) {
+            imagesDir.mkdirs() // Create the directory
+        }
+
+        // Now create the image file inside this directory
+        val file = File(imagesDir, "${System.currentTimeMillis()}.jpg")
+        requireContext().contentResolver.openInputStream(uri)?.use { inputStream ->
+            file.outputStream().use { outputStream ->
+                inputStream.copyTo(outputStream)
+            }
+        }
+        return file.absolutePath // Return the file path to save in your database
+    }
+
+
     companion object {
         private const val REQUEST_IMAGE_PICK = 100
+        private const val REQUEST_STORAGE_PERMISSION = 101
     }
 }
