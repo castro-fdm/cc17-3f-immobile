@@ -27,6 +27,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
 import java.io.File
+import java.io.IOException
 
 class RequesteeFragment : Fragment() {
 
@@ -117,18 +118,36 @@ class RequesteeFragment : Fragment() {
             titleInput.setText(it.title)
             descriptionInput.setText(it.description)
             priceInput.setText(it.price)
-            selectedImageUri = Uri.parse(it.imageUri)
-            imageInput.setImageURI(selectedImageUri)
+
+            // Carefully handle existing image URI
+            if (it.imageUri.isNotEmpty()) {
+                try {
+                    // Convert file path to Uri
+                    selectedImageUri = Uri.fromFile(File(it.imageUri))
+                    imageInput.setImageURI(selectedImageUri)
+                } catch (e: Exception) {
+                    Log.e("ImageError", "Error loading existing image", e)
+                    Toast.makeText(requireContext(), "Could not load existing image", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
 
-        imageInput.setOnClickListener { openGallery() } // Handle image selection
+        imageInput.setOnClickListener { openGallery() }
 
         val dialog = AlertDialog.Builder(requireContext())
             .setView(dialogView)
             .setPositiveButton("Save") { _, _ ->
+                val imageUriToSave = if (selectedImageUri != null) {
+                    // Only copy URI if a new image was selected
+                    copyUriToInternalStorage(selectedImageUri!!)
+                } else {
+                    // Use existing image path if no new image was selected
+                    existingListing?.imageUri ?: ""
+                }
+
                 val newListing = Listing(
-                    id = existingListing?.id ?: 0, // Keep ID for updates
-                    imageUri = selectedImageUri?.let { copyUriToInternalStorage(it) } ?: "",
+                    id = existingListing?.id ?: 0,
+                    imageUri = imageUriToSave,
                     title = titleInput.text.toString(),
                     description = descriptionInput.text.toString(),
                     price = priceInput.text.toString()
@@ -198,20 +217,37 @@ class RequesteeFragment : Fragment() {
     }
 
     private fun copyUriToInternalStorage(uri: Uri): String {
-        // Create the images directory if it doesn't exist
-        val imagesDir = File(requireContext().filesDir, "images")
-        if (!imagesDir.exists()) {
-            imagesDir.mkdirs() // Create the directory
-        }
-
-        // Now create the image file inside this directory
-        val file = File(imagesDir, "${System.currentTimeMillis()}.jpg")
-        requireContext().contentResolver.openInputStream(uri)?.use { inputStream ->
-            file.outputStream().use { outputStream ->
-                inputStream.copyTo(outputStream)
+        try {
+            // Create the images directory if it doesn't exist
+            val imagesDir = File(requireContext().filesDir, "images")
+            if (!imagesDir.exists()) {
+                imagesDir.mkdirs() // Create the directory
             }
+
+            // Check if input stream can be opened
+            val inputStream = requireContext().contentResolver.openInputStream(uri)
+                ?: throw IllegalArgumentException("Unable to open input stream for URI: $uri")
+
+            // Now create the image file inside this directory
+            val file = File(imagesDir, "${System.currentTimeMillis()}.jpg")
+
+            // Use use to ensure streams are closed
+            inputStream.use { input ->
+                file.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+
+            // Verify file was actually created
+            if (!file.exists()) {
+                throw IOException("File was not created successfully")
+            }
+
+            return file.absolutePath // Return the file path to save in your database
+        } catch (e: Exception) {
+            Log.e("FileError", "Error copying file to internal storage", e)
+            throw e // Or handle as appropriate for your app's error handling strategy
         }
-        return file.absolutePath // Return the file path to save in your database
     }
 
     companion object {
