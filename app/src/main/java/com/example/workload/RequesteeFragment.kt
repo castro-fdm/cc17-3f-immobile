@@ -44,11 +44,10 @@ class RequesteeFragment : Fragment() {
 
         val profileText = layout.findViewById<TextView>(R.id.profileText)
 
-        profileText.setOnClickListener{
+        profileText.setOnClickListener {
             val action = RequesteeFragmentDirections.actionRequesteeFragmentToUserProfileFragment()
             view?.findNavController()?.navigate(action)
         }
-
 
         // Initialize Room Database
         db = AppDatabase.getDatabase(requireContext())
@@ -78,7 +77,7 @@ class RequesteeFragment : Fragment() {
         // Button listeners
         addButton.setOnClickListener { showAddEditDialog(null) }
         yourListingsButton.setOnClickListener { loadListings() } // Load all listings
-        completedListingsButton.setOnClickListener { loadCompletedListings() } // Load completed listings
+        //completedListingsButton.setOnClickListener { loadCompletedListings() } // Load completed listings
 
         return layout
     }
@@ -98,8 +97,8 @@ class RequesteeFragment : Fragment() {
         lifecycleScope.launch {
             val dbCompletedListings = listingDao.getCompletedListings() // Add query in DAO
             listings.clear()
-            listings.addAll(dbCompletedListings)
-            adapter.notifyDataSetChanged()
+            //.addAll(dbCompletedListings)
+            //.notifyDataSetChanged()
         }
     }
 
@@ -161,7 +160,7 @@ class RequesteeFragment : Fragment() {
     // Open gallery for image selection
     private fun openGallery() {
         if (ContextCompat.checkSelfPermission(requireContext(), android.Manifest.permission.READ_EXTERNAL_STORAGE)
-            != PackageManager.PERMISSION_GRANTED    ) {
+            != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(
                 requireActivity(),
                 arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE),
@@ -180,8 +179,7 @@ class RequesteeFragment : Fragment() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_STORAGE_PERMISSION && grantResults.isNotEmpty()
-            && grantResults[0] == PackageManager.PERMISSION_GRANTED
-        ) {
+            && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             openGallery()
         } else {
             Toast.makeText(requireContext(), "Permission denied", Toast.LENGTH_SHORT).show()
@@ -215,7 +213,6 @@ class RequesteeFragment : Fragment() {
         }
         return file.absolutePath // Return the file path to save in your database
     }
-
 
     companion object {
         private const val REQUEST_IMAGE_PICK = 100

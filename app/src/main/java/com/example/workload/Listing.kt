@@ -10,7 +10,9 @@ data class Listing(
     val title: String,
     val description: String,
     val price: String,
-    val isCompleted: Boolean = false  // Ensure this field exists
+    val isAccepted: Boolean = false,
+    val isCompleted: Boolean = false
 )
+
 
 
