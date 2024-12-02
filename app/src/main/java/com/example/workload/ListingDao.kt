@@ -19,10 +19,11 @@ interface ListingDao {
 
     @Delete
     suspend fun deleteListing(listing: Listing)
+
     @Query("SELECT * FROM listings WHERE isAccepted = 1")
-    suspend fun getAcceptedListings(): List<Listing>
+    suspend fun getAcceptedJobs(): List<Listing>
 
     @Query("SELECT * FROM listings WHERE isAccepted = 0")
-    suspend fun getRejectedListings(): List<Listing>
+    suspend fun getAvailableJobs(): List<Listing>
 }
 
