@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [Listing::class, User::class], version = 2, exportSchema = false)  // Updated version to 2
+@Database(entities = [Listing::class, User::class], version = 3, exportSchema = false)  // Updated version to 3
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun listingDao(): ListingDao
@@ -17,12 +17,20 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
-        // Define migration strategy
+        // Migration for version 1 -> 2
         val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(database: SupportSQLiteDatabase) {
-                // Add new columns 'role' and 'phoneNumber' to the 'user_table'
+                // Add 'role' and 'phoneNumber' columns to 'user_table'
                 database.execSQL("ALTER TABLE user_table ADD COLUMN role TEXT")
                 database.execSQL("ALTER TABLE user_table ADD COLUMN phoneNumber TEXT")
+            }
+        }
+
+        // Migration for version 2 -> 3 (Add 'isAccepted' column)
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Add 'isAccepted' column to 'listings' table
+                database.execSQL("ALTER TABLE listings ADD COLUMN isAccepted INTEGER DEFAULT 0 NOT NULL")
             }
         }
 
@@ -34,7 +42,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "listings_database"  // Name of the database
                 )
-                    .addMigrations(MIGRATION_1_2)  // Add the migration strategy
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)  // Add migration strategies
                     .build()
                 INSTANCE = instance
                 instance
