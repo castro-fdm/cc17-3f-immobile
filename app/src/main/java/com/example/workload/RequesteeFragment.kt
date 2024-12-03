@@ -44,7 +44,6 @@ class RequesteeFragment : Fragment() {
         val layout = inflater.inflate(R.layout.fragment_requestee, container, false)
 
         val profileText = layout.findViewById<TextView>(R.id.profileText)
-
         profileText.setOnClickListener {
             val action = RequesteeFragmentDirections.actionRequesteeFragmentToUserProfileFragment()
             view?.findNavController()?.navigate(action)
@@ -78,7 +77,7 @@ class RequesteeFragment : Fragment() {
         // Button listeners
         addButton.setOnClickListener { showAddEditDialog(null) }
         yourListingsButton.setOnClickListener { loadListings() } // Load all listings
-        //completedListingsButton.setOnClickListener { loadCompletedListings() } // Load completed listings
+        completedListingsButton.setOnClickListener { loadCompletedListings() } // Load empty listings for completed
 
         return layout
     }
@@ -93,13 +92,12 @@ class RequesteeFragment : Fragment() {
         }
     }
 
-    // Load only completed listings
+    // Load only completed listings (empty list functionality)
     private fun loadCompletedListings() {
         lifecycleScope.launch {
-            val dbCompletedListings = listingDao.getCompletedListings() // Add query in DAO
-            listings.clear()
-            //.addAll(dbCompletedListings)
-            //.notifyDataSetChanged()
+            // Simulating an empty list for completed listings
+            listings.clear()  // Clear the current list to simulate empty state
+            adapter.notifyDataSetChanged()  // Notify adapter about the change
         }
     }
 
