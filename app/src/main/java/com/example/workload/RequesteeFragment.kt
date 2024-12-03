@@ -76,17 +76,16 @@ class RequesteeFragment : Fragment() {
 
         // Button listeners
         addButton.setOnClickListener { showAddEditDialog(null) }
-        yourListingsButton.setOnClickListener { loadListings() } // Load all listings
+        yourListingsButton.setOnClickListener { loadListings() } // Load all active listings (non-completed)
         completedListingsButton.setOnClickListener { loadCompletedListings() } // Load completed listings
 
         return layout
     }
 
-    // Load all listings except completed listings
+    // Load all listings except the completed ones
     private fun loadListings() {
         lifecycleScope.launch {
-            // Fetch listings that are not completed
-            val dbListings = listingDao.getAllListings().filter { !it.isCompleted }
+            val dbListings = listingDao.getAllListings().filter { !it.isCompleted } // Exclude completed jobs
             listings.clear()
             listings.addAll(dbListings)
             adapter.notifyDataSetChanged()
@@ -96,10 +95,9 @@ class RequesteeFragment : Fragment() {
     // Load only completed listings
     private fun loadCompletedListings() {
         lifecycleScope.launch {
-            // Fetch only completed listings from the database
-            val completedListings = listingDao.getCompletedListings()
+            val dbListings = listingDao.getCompletedListings() // Fetch only completed jobs
             listings.clear()
-            listings.addAll(completedListings)
+            listings.addAll(dbListings)
             adapter.notifyDataSetChanged()
         }
     }

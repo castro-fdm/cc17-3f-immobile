@@ -29,6 +29,13 @@ class ListingsAdapter(
             descriptionView.text = listing.description
             priceView.text = listing.price
 
+            // Hide the Edit button if the listing is completed
+            if (listing.isCompleted) {
+                editButton.visibility = View.GONE
+            } else {
+                editButton.visibility = View.VISIBLE
+            }
+
             editButton.setOnClickListener { onEdit(listing) }
             deleteButton.setOnClickListener { onDelete(listing) }
         }
@@ -45,3 +52,4 @@ class ListingsAdapter(
 
     override fun getItemCount() = listings.size
 }
+
