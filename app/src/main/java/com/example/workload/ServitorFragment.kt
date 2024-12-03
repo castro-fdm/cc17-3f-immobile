@@ -34,8 +34,9 @@ class ServitorFragment : Fragment() {
             listings,
             onAccept = { listing -> acceptJob(listing) },
             onReject = { listing -> rejectJob(listing) },
-            onConfirm = { listing -> confirmJob(listing) }
+            onMarkComplete = { listing -> markJobAsComplete(listing) } // Pass the lambda here
         )
+
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = adapter
 
@@ -89,7 +90,23 @@ class ServitorFragment : Fragment() {
         }
     }
 
-    // Confirm an accepted job
+    // Mark the job as completed and remove it from the available list
+    private fun markJobAsComplete(listing: Listing) {
+        lifecycleScope.launch {
+            // Mark the job as completed in the database
+            val updatedListing = listing.copy(isCompleted = true)
+            listingDao.updateListing(updatedListing)
+
+            // Remove the completed job from the accepted listings and refresh the UI
+            listings.remove(listing)
+            adapter.notifyDataSetChanged()
+
+            // Optionally, you can load the completed jobs in a separate list or RecyclerView in the RequesteeFragment
+            loadAcceptedJobs() // Refresh to show updated list of accepted jobs
+        }
+    }
+
+    // Confirm an accepted job (if necessary)
     private fun confirmJob(listing: Listing) {
         lifecycleScope.launch {
             val updatedListing = listing.copy(isCompleted = true) // Mark as completed

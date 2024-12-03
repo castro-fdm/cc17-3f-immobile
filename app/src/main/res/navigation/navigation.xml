@@ -58,7 +58,12 @@
         android:id="@+id/servitorFragment"
         android:name="com.example.workload.ServitorFragment"
         android:label="fragment_servitor"
-        tools:layout="@layout/fragment_servitor" />
+        tools:layout="@layout/fragment_servitor">
+        <action
+            android:id="@+id/action_servitorFragment_to_requesteeFragment"
+            app:destination="@id/requesteeFragment" />
+    </fragment>
+
     <argument
         android:name="requesteeData"
         app:argType="string" />

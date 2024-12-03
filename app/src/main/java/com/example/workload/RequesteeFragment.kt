@@ -77,27 +77,30 @@ class RequesteeFragment : Fragment() {
         // Button listeners
         addButton.setOnClickListener { showAddEditDialog(null) }
         yourListingsButton.setOnClickListener { loadListings() } // Load all listings
-        completedListingsButton.setOnClickListener { loadCompletedListings() } // Load empty listings for completed
+        completedListingsButton.setOnClickListener { loadCompletedListings() } // Load completed listings
 
         return layout
     }
 
-    // Load all listings
+    // Load all listings except completed listings
     private fun loadListings() {
         lifecycleScope.launch {
-            val dbListings = listingDao.getAllListings()
+            // Fetch listings that are not completed
+            val dbListings = listingDao.getAllListings().filter { !it.isCompleted }
             listings.clear()
             listings.addAll(dbListings)
             adapter.notifyDataSetChanged()
         }
     }
 
-    // Load only completed listings (empty list functionality)
+    // Load only completed listings
     private fun loadCompletedListings() {
         lifecycleScope.launch {
-            // Simulating an empty list for completed listings
-            listings.clear()  // Clear the current list to simulate empty state
-            adapter.notifyDataSetChanged()  // Notify adapter about the change
+            // Fetch only completed listings from the database
+            val completedListings = listingDao.getCompletedListings()
+            listings.clear()
+            listings.addAll(completedListings)
+            adapter.notifyDataSetChanged()
         }
     }
 

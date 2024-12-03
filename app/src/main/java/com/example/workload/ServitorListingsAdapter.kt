@@ -7,13 +7,14 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.navigation.Navigation
 import androidx.recyclerview.widget.RecyclerView
 
 class ServitorListingsAdapter(
-    private val listings: List<Listing>,
+    private val listings: MutableList<Listing>, // Changed to MutableList to allow modification
     private val onAccept: (Listing) -> Unit,
     private val onReject: (Listing) -> Unit,
-    private val onConfirm: (Listing) -> Unit
+    private val onMarkComplete: (Listing) -> Unit // Add this callback for mark as complete
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     companion object {
@@ -54,7 +55,18 @@ class ServitorListingsAdapter(
             holder.priceTextView.text = listing.price
             holder.imageView.setImageURI(Uri.parse(listing.imageUri))
 
-            holder.confirmButton.setOnClickListener { onConfirm(listing) }
+            holder.markAsCompleteButton.setOnClickListener {
+                // Perform necessary update on the listing
+                onMarkComplete(listing)
+
+                // Remove the job from available listings and add it to completed
+                listings.removeAt(position)
+                notifyItemRemoved(position)
+
+                // Navigate to RequesteeFragment after marking as complete
+                val navController = Navigation.findNavController(it)
+                navController.navigate(R.id.action_servitorFragment_to_requesteeFragment)
+            }
         }
     }
 
@@ -74,6 +86,6 @@ class ServitorListingsAdapter(
         val titleTextView: TextView = view.findViewById(R.id.listingTitle)
         val descriptionTextView: TextView = view.findViewById(R.id.listingDescription)
         val priceTextView: TextView = view.findViewById(R.id.listingPrice)
-        val confirmButton: Button = view.findViewById(R.id.confirmButton)
+        val markAsCompleteButton: Button = view.findViewById(R.id.markAsCompleteButton)
     }
 }

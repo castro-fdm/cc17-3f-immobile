@@ -44,7 +44,7 @@
             android:orientation="horizontal">
 
             <Button
-                android:id="@+id/confirmButton"
+                android:id="@+id/markAsCompleteButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Mark as Complete"
