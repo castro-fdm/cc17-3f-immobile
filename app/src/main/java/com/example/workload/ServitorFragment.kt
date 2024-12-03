@@ -33,7 +33,8 @@ class ServitorFragment : Fragment() {
         adapter = ServitorListingsAdapter(
             listings,
             onAccept = { listing -> acceptJob(listing) },
-            onReject = { listing -> rejectJob(listing) }
+            onReject = { listing -> rejectJob(listing) },
+            onConfirm = { listing -> confirmJob(listing) }
         )
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = adapter
@@ -76,7 +77,7 @@ class ServitorFragment : Fragment() {
         lifecycleScope.launch {
             val updatedListing = listing.copy(isAccepted = true)
             listingDao.updateListing(updatedListing)
-            loadAvailableJobs() // Refresh to show only non-accepted jobs
+            loadAcceptedJobs() // Refresh to show the updated UI for accepted jobs
         }
     }
 
@@ -85,6 +86,15 @@ class ServitorFragment : Fragment() {
         lifecycleScope.launch {
             listingDao.deleteListing(listing) // Or update with a "rejected" status
             loadAvailableJobs() // Refresh the list
+        }
+    }
+
+    // Confirm an accepted job
+    private fun confirmJob(listing: Listing) {
+        lifecycleScope.launch {
+            val updatedListing = listing.copy(isCompleted = true) // Mark as completed
+            listingDao.updateListing(updatedListing)
+            loadAcceptedJobs() // Refresh the accepted jobs list
         }
     }
 }
